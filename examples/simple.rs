@@ -11,6 +11,7 @@ macro_rules! println {
 }
 
 fn main() {
+    log!("global {}", 0);
     log!(entry: "hello, world!");
     log!(main: "Running!");
     log!(main/computor: "Setting up computation...");

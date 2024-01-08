@@ -2,11 +2,18 @@
 
 #[macro_export]
 macro_rules! __format_log {
-    ($level: ident, $($origin: ident)/ * : $formatter: expr, $($arg: tt)*) => {
+    ($level: ident, $formatter: expr, $($arg: tt)*) => {
         format!(
             concat!("{} [", colored!(BOLD => "{}"), "] ", $formatter), 
             colored!(get_log_attr!($level->COLOR) => get_log_attr!($level->NAME_UPPER)), 
-            stringify!($($origin)/+), $($arg)*
+            concat!(module_path!()), $($arg)*
+        )
+    };
+    ($level: ident, $($origin: ident)/+ : $formatter: expr, $($arg: tt)*) => {
+        format!(
+            concat!("{} [", colored!(BOLD => "{}"), "] ", $formatter), 
+            colored!(get_log_attr!($level->COLOR) => get_log_attr!($level->NAME_UPPER)), 
+            concat!(module_path!(), " ", stringify!(/ $($origin)/+)), $($arg)*
         )
     };
 }
