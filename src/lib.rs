@@ -129,13 +129,3 @@ impl Log for Logger {
         
     }
 }
-
-pub mod log {
-    static LOGGER: Logger = Logger { };
-    pub use log::set_max_level;
-    pub use log::LevelFilter;
-
-    pub fn init_log() {
-        log::set_logger(&LOGGER).expect("set logger!");
-    }
-}
