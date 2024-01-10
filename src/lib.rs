@@ -1,5 +1,7 @@
 #![feature(macro_metavar_expr)]
 
+use log::Log;
+
 #[macro_export]
 macro_rules! __format_log {
     ($level: ident, $formatter: expr, $($arg: tt)*) => {
@@ -14,6 +16,13 @@ macro_rules! __format_log {
             concat!("{} [", colored!(BOLD => "{}"), "] ", $formatter), 
             colored!(get_log_attr!($level->COLOR) => get_log_attr!($level->NAME_UPPER)), 
             concat!(module_path!(), " ", stringify!(/ $($origin)/+)), $($arg)*
+        )
+    };
+    ($level: ident, @ $origin: expr ; $formatter: expr, $($arg: tt)*) => {
+        format!(
+            concat!("{} [", colored!(BOLD => "{}"), "] ", $formatter), 
+            colored!(get_log_attr!($level->COLOR) => get_log_attr!($level->NAME_UPPER)), 
+            $origin, $($arg)*
         )
     };
 }
@@ -95,4 +104,35 @@ macro_rules! colored {
         let (br, bg, bb) = $bg;
         format!("\x1b[0m\x1b[38;2;{fr};{fg};{fb}mx1b[48;2;{br};{bg};{bb}m{}\x1b[0m", $message)
     }}
+}
+
+struct Logger {
+
+}
+
+impl Log for Logger {
+    fn enabled(&self, _metadata: &log::Metadata) -> bool {
+        true
+    }
+
+    fn log(&self, record: &log::Record) {
+        println!("{}", match record.level() {
+            log::Level::Error => __format_log!(error, @ record.target() ; "{}", record.args()),
+            log::Level::Warn => __format_log!(warn, @ record.target() ; "{}", record.args()),
+            log::Level::Info => __format_log!(log, @ record.target() ; "{}", record.args()),
+            log::Level::Debug => __format_log!(debug, @ record.target() ; "{}", record.args()),
+            log::Level::Trace => __format_log!(trace, @ record.target() ; "{}", record.args()),
+        })
+    }
+
+    fn flush(&self) {
+        
+    }
+}
+
+static LOGGER: Logger = Logger { };
+
+pub fn init_log() {
+    log::set_logger(&LOGGER).expect("set logger!");
+    log::set_max_level(log::LevelFilter::Trace);
 }
